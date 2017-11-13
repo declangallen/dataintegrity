@@ -151,8 +151,6 @@ t <- supW67measure[s,]%>%
   
   t%>%group_by(n)%>%summarise(count=n())
 
-
-
 supW67measure$asPOSIXct <- as.POSIXct(supW67measure$Start_Date)
 supW67measure$Dist <-  supW67measure$Distance*100000*3.28084
 

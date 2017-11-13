@@ -118,7 +118,7 @@ subset(ogrDrivers(), grepl("GDB", name))
 fc_list <- ogrListLayers(fgdb)
 print(fc_list)
 supW67M <- readOGR(dsn=fgdb,layer="SUPERIORW67CIS_GPS_Measure")
-supW67measure <- as.data.frame(supW67M)
+supW2measure <- as.data.frame(supW2Measure)
 
 
 r <- arc.open("C:/Users/dgallen/Desktop/Geos/ENB/SUPERIOR.CAL_POINTS_67")
@@ -127,15 +127,15 @@ calP <- as.data.frame(readOGR(dsn=fgdb,layer="CAL_POINTS"))
 calP%>%group_by(LINE,STN)%>%summarise(n=n())%>%arrange(desc(n))
 
 
-supW67measure %>% 
+supW2measure %>% 
   filter(is.na(coords.x1))%>%
   summarise(n=n())
 
-b <- duplicated(supW67measure[,c(2)])&
-         !duplicated(supW67measure[,c(24,25,2)])
+b <- duplicated(supW2measure[,c(2)])&
+         !duplicated(supW2measure[,c(25,26,2)])
 
-s <- duplicated(supW67measure[,c(24,25)])&
-  !duplicated(supW67measure[,c(7)])
+s <- duplicated(supW2measure[,c(25,26)])&
+  !duplicated(supW2measure[,c(7)])
 
 j <- duplicated(n[,c(5,6)])&
   !duplicated(n[,c(1)])
@@ -143,7 +143,7 @@ j <- duplicated(n[,c(5,6)])&
 c <-  duplicated(supW67measure[,c(2)],fromLast = TRUE)&
       !duplicated(supW67measure[,c(24,25,2)],fromLast = TRUE)
 
-t <- supW67measure[s,]%>%
+t <- supW2measure[s,]%>%
   group_by(CI_Survey_Name,MEAS,coords.x2,coords.x1)%>%
   summarise(n=n())%>%
   arrange(desc(n))%>%
@@ -153,5 +153,20 @@ t <- supW67measure[s,]%>%
 
 supW67measure$asPOSIXct <- as.POSIXct(supW67measure$Start_Date)
 supW67measure$Dist <-  supW67measure$Distance*100000*3.28084
+
+SurveyAppend <- function(Survey1,Survey2){
+  
+  myList <- Survey1$MEAS
+  min <- min(Survey2$MEAS)
+  max <- max(Survey2$MEAS)
+  
+  Survey1$add <- as.numeric(sapply(1:length(myList),
+                                   function(i)ifelse((Survey1$MEAS[i]>min)&(Survey1$MEAS[i]<max),0,1)))
+  Survey2$add <- 1
+  z <- rbind(Survey1[Survey1$add==1,],Survey2)%>%
+    arrange(MEAS)%>%
+    droplevels()
+return(z)
+}
 
 

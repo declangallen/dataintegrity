@@ -9,7 +9,6 @@ setwd(paste("Y:/Enbridge/00917200348 Superior Region- Mainlines-CIS",
             " into ISM Data Integration/Working Docs/PCS/GPS Gaps/SuperiorW1",sep = ""))
 dir()
 
-
 readCIS <- function(filename,Pipe){
   ##read the CIS data from the PCS export
   dat <- read.csv(filename)

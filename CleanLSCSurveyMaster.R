@@ -117,13 +117,15 @@ fgdb <- "C:/Users/dgallen/Desktop/Geos/ENB/SUPERIOR.gdb"
 subset(ogrDrivers(), grepl("GDB", name))
 fc_list <- ogrListLayers(fgdb)
 print(fc_list)
-supW67M <- readOGR(dsn=fgdb,layer="SUPERIORW67CIS_GPS_Measure")
-supW2measure <- as.data.frame(supW2Measure)
 
 
-r <- arc.open("C:/Users/dgallen/Desktop/Geos/ENB/SUPERIOR.CAL_POINTS_67")
+readARCMap <- function(x) {
+  dat <- readOGR(dsn=fgdb,layer=x)
+  dat <- as.data.frame(dat)
+  return(dat)
+  }
 
-calP <- as.data.frame(readOGR(dsn=fgdb,layer="CAL_POINTS"))
+
 calP%>%group_by(LINE,STN)%>%summarise(n=n())%>%arrange(desc(n))
 
 
@@ -151,8 +153,6 @@ t <- supW2measure[s,]%>%
   
   t%>%group_by(n)%>%summarise(count=n())
 
-supW67measure$asPOSIXct <- as.POSIXct(supW67measure$Start_Date)
-supW67measure$Dist <-  supW67measure$Distance*100000*3.28084
 
 SurveyAppend <- function(Survey1,Survey2){
   

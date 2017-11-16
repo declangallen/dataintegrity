@@ -129,24 +129,29 @@ readARCMap <- function(x) {
 calP%>%group_by(LINE,STN)%>%summarise(n=n())%>%arrange(desc(n))
 
 
-supW2measure %>% 
+sup13%>% 
   filter(is.na(coords.x1))%>%
   summarise(n=n())
+
+
 
 b <- duplicated(supW2measure[,c(2)])&
          !duplicated(supW2measure[,c(25,26,2)])
 
-s <- duplicated(supW2measure[,c(25,26)])&
-  !duplicated(supW2measure[,c(7)])
+###
+s <- duplicated(sup13[,c(21,20,4)])&
+  duplicated(sup13[,c(4)])
 
+###
 j <- duplicated(n[,c(5,6)])&
   !duplicated(n[,c(1)])
 
-c <-  duplicated(supW67measure[,c(2)],fromLast = TRUE)&
-      !duplicated(supW67measure[,c(24,25,2)],fromLast = TRUE)
+###duplicate stn vs with no duplicate lat long stn
+c <-  duplicated(sup13[,c(4)],fromLast = TRUE)&
+      !duplicated(sup13[,c(21,22,4)],fromLast = TRUE)
 
-t <- supW2measure[s,]%>%
-  group_by(CI_Survey_Name,MEAS,coords.x2,coords.x1)%>%
+t <- sup13[s,]%>%
+  group_by(CI_Survey_Name,Station_Number,coords.x2,coords.x1)%>%
   summarise(n=n())%>%
   arrange(desc(n))%>%
   ungroup()
@@ -166,7 +171,65 @@ SurveyAppend <- function(Survey1,Survey2){
   z <- rbind(Survey1[Survey1$add==1,],Survey2)%>%
     arrange(MEAS)%>%
     droplevels()
-return(z)
+print(z)
 }
+
+readheader <- function(x){
+  
+  myList <- dir(x)
+  sapply(1:length(myList), function(i) names(read.csv(myList[[i]])))
+  
+}
+
+myList <- list.files(pattern = ".csv")
+filenames <- paste("GPS6A",1:length(myList),sep = "")
+
+###to get multiple files into multiple datasets
+for(i in 1:length(myList)){
+    assign(filenames[i], 
+           read_xls(myList[i]))
+  }
+
+##read files into list
+sup61 <- lapply(1:length(myList),function(i) read.csv(myList[[i]]))
+
+##give all tables a start date of....
+sup61 <- lapply(sup61,cbind, ORGSTARTDATE="2010-11-30")
+
+
+##break out file names from a 1x7 list to a 7x1 list. then we can use it in lapply.
+files <- list("1"=dir()[1],
+              "2"=dir()[2],
+              "3"=dir()[3],
+              "4"=dir()[4],
+              "5"=dir()[5],
+              "6"=dir()[6],
+              "7"=dir()[7])
+
+###assing the surveyname to the filename
+sup61 <- mapply(cbind,sup61,"ORGCISURVEYNAME"=files, SIMPLIFY = F)
+
+n <- lapply(sup61,function(x) x[match(names(sup61[[1]]),names(x))])
+
+n <- do.call(rbind,n)
+
+n <- mutate(n, CISURVEYNAME = "Line_61_SUPERIOR_EAST_COMBINE.csv")
+
+write.csv(n,"Line_61_SUPERIOR_EAST_COMBINE.csv",na="")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

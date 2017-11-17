@@ -4,6 +4,7 @@ library(stringr)
 library(data.table)
 library(rgdal)
 library(readxl)
+library(plyr)
 
 setwd(paste("Y:/Enbridge/00917200348 Superior Region- Mainlines-CIS",
             " into ISM Data Integration/Working Docs/PCS/GPS Gaps/SuperiorW1",sep = ""))
@@ -176,12 +177,18 @@ print(z)
 
 readheader <- function(x){
   
-  myList <- dir(x)
+  patterns <- c(".CSV",".csv")
+  
+  myList <- list.files(pattern = paste(patterns,collapse = "|"))
   sapply(1:length(myList), function(i) names(read.csv(myList[[i]])))
   
 }
 
-myList <- list.files(pattern = ".csv")
+patterns <- c(".CSV",".csv")
+myList <- list.files(pattern = paste(patterns,collapse = "|"))
+
+myList <- list.files(pattern = (".xlsx"))
+
 filenames <- paste("GPS6A",1:length(myList),sep = "")
 
 ###to get multiple files into multiple datasets
@@ -191,36 +198,32 @@ for(i in 1:length(myList)){
   }
 
 ##read files into list
-sup61 <- lapply(1:length(myList),function(i) read.csv(myList[[i]]))
+LSCEast13xlsx <- lapply(1:length(myList),function(i) read_xlsx(myList[[i]]))
 
 ##give all tables a start date of....
-sup61 <- lapply(sup61,cbind, ORGSTARTDATE="2010-11-30")
+LSCEast13xlsx <- lapply(LSCEast13xlsx,cbind, ORGSTARTDATE="2012-10-01")
 
 
 ##break out file names from a 1x7 list to a 7x1 list. then we can use it in lapply.
-files <- list("1"=dir()[1],
-              "2"=dir()[2],
-              "3"=dir()[3],
-              "4"=dir()[4],
-              "5"=dir()[5],
-              "6"=dir()[6],
-              "7"=dir()[7])
+files <- mapply(list,myList)
+
+files <- lapply(mapply(list,myList),paste,"LINE_13_EAST",sep="_")
 
 ###assing the surveyname to the filename
-sup61 <- mapply(cbind,sup61,"ORGCISURVEYNAME"=files, SIMPLIFY = F)
+LSCEast13xlsx <- mapply(cbind,LSCEast13xlsx,"ORGCISURVEYNAME"=files, SIMPLIFY = F)
 
-n <- lapply(sup61,function(x) x[match(names(sup61[[1]]),names(x))])
-
-n <- do.call(rbind,n)
+sup13eastxlsx <- do.call(rbind.fill,LSCEast13xlsx)
 
 n <- mutate(n, CISURVEYNAME = "Line_61_SUPERIOR_EAST_COMBINE.csv")
 
 write.csv(n,"Line_61_SUPERIOR_EAST_COMBINE.csv",na="")
 
 
+sup13eastcsv <- n
 
 
 
+sup13eastcsv%>%group_by(as.factor(ORGCISURVEYNAME))%>%summarise(n=n())%>%print(n=nrow(.))
 
 
 

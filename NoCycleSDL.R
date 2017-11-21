@@ -7,7 +7,7 @@ library(plotly)
 
 SDL <- function(file){
   
-  datDC <- read.csv(dir()[30])
+  datDC <- read.csv(dir()[1])
   
 
   DC <- select(datDC,DC.Reading,Record.Type,colnames(datDC[2]), Record.Type) 
